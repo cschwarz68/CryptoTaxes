@@ -21,7 +21,7 @@ The basic approach is always the same. For every sale of an asset, select a prio
 The purchase price is called the basis. The gain (or loss) for each pair of transactions is the sale price minus the basis. Rarely will a buy transaction match the number of coins in a sale exactly. Therefore, it's necessary to match a portion of a purchase with a sale, or vice-versa. Each transaction matched pair will have a buy date and a sell date. It qualifies as a long term gain (or loss) if the difference is at least one year.
 
 see [this article](https://cryptotrader.tax/blog/cryptocurrency-tax-calculations-fifo-and-lifo-costing-methods-explained) for a discussion on which is the best policy to use. 
-##Cached Data
+## Cached Data
 The program creates a cached version of the transaction report with a Used column. The purpose of this column is to keep track of which transactions have been used in the tax calculations and whether the used portion represents the complete transaction or some part. The idea is that this cached file can hang around until next year, and that calculation can build upon the cached data.
 
 Keeping this cached version around is really only important if you want to change your policy (LIFO, FIFO, HIFO) from one year to the next. If you don't want to change from year to year, you can just process a multi-year transaction report, essentially re-doing previous years' calculations.
