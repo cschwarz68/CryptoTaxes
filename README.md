@@ -37,3 +37,4 @@ Some folks have much more complicated cryto histories than me. I've not accounte
 * I considered one transaction type as a sell: Sell
 * I considered four transaction types as buys: Buy, Rewards Income, Coinbase Earn, Receive.
 * There may be other transaction types I've not seen
+* The cache system for remembering last year's transaction disposition is fragile. I'd keep a copy somewhere if it was important to me
