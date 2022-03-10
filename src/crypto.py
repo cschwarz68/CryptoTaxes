@@ -16,6 +16,7 @@ logging.basicConfig(
 )
 
 digits = 6
+epsilon = 1.0e-5
 formatstr = "%12.6f"
 
 
@@ -46,16 +47,18 @@ class Asset:
     def get_sells(self):
         """return all sells of an asset"""
         is_sell = self.df_asset["Transaction Type"] == "Sell"
-        sells = self.df_asset[is_sell]
+        is_ats = self.df_asset["Transaction Type"] == "Advanced Trade Sell"
+        sells = self.df_asset[is_sell | is_ats]
         return sells
 
     def get_buys(self):
         """return all buys of an asset"""
         is_buy = self.df_asset["Transaction Type"] == "Buy"
+        is_atb = self.df_asset["Transaction Type"] == "Advanced Trade Buy"
         is_income = self.df_asset["Transaction Type"] == "Rewards Income"
         is_earned = self.df_asset["Transaction Type"] == "Coinbase Earn"
         is_received = self.df_asset["Transaction Type"] == "Receive"
-        buys = self.df_asset[is_buy | is_income | is_earned | is_received]
+        buys = self.df_asset[is_buy | is_atb | is_income | is_earned | is_received]
         return buys
 
     def unused(self, row):
@@ -72,9 +75,17 @@ class Asset:
         Allow a small margin to account for roundoff error
         """
         unused = self.unused(row)
-        if unused <= sys.float_info.epsilon:
+        if unused <= epsilon:
             return True
         else:
+            logging.debug(
+                "not yet all used. unused = "
+                + str(unused)
+                + "Quantity Transaction = "
+                + str(round(self.df.loc[row, "Quantity Transacted"], digits))
+                + ", Used = "
+                + str(round(self.df.loc[row, "Used"], digits))
+            )
             return False
 
     def getrows(self, df):
@@ -314,6 +325,18 @@ class Disposition:
         gains_shortterm = sum(df[~islongterm].Gain)
         return gains_longterm, gains_shortterm
 
+    def write(self, df):
+        """write long term and short term summary spreadsheets"""
+        year = df.iloc[1]["year"]
+        duration = df["Date Disposed"] - df["Date Acquired"]
+        islongterm = duration >= pd.Timedelta(365, "D")
+        df_longterm = df[islongterm]
+        df_shortterm = df[~islongterm]
+        file_longterm = os.path.join("../output", "longterm_" + str(year) + ".csv")
+        file_shortterm = os.path.join("../output", "shortterm_" + str(year) + ".csv")
+        df_longterm.to_csv(file_longterm, index=False, float_format=formatstr)
+        df_shortterm.to_csv(file_shortterm, index=False, float_format=formatstr)
+
     def print_summary(self, file, coin, gains_longterm, gains_shortterm):
         """print one line of disposition summary"""
         print(
@@ -332,6 +355,7 @@ class Disposition:
             for year in years:
                 print("Profit/Loss Summary, " + str(year), file=f)
                 df_year = self.df[self.df["year"] == year]
+                self.write(df_year)
                 coins = pd.unique(df_year["Asset"])
                 for coin in coins:
                     dfasset = df_year[df_year["Asset"] == coin]
